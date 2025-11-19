@@ -1,0 +1,173 @@
+import java.util.InputMismatchException;
+import java.util.Scanner;
+
+
+class InvalidMarksException extends Exception {
+    public InvalidMarksException(String message) {
+        super(message);
+    }
+}
+
+
+class Student {
+    private int rollNumber;
+    private String studentName;
+    private int[] marks; 
+
+  
+    public Student(int rollNumber, String studentName, int[] marks) {
+        this.rollNumber = rollNumber;
+        this.studentName = studentName;
+        this.marks = marks.clone(); 
+    }
+
+    
+    public void validateMarks() throws InvalidMarksException {
+        for (int i = 0; i < marks.length; i++) {
+            if (marks[i] < 0 || marks[i] > 100) {
+                throw new InvalidMarksException("Invalid marks for subject " + (i + 1) + ": " + marks[i]);
+            }
+        }
+    }
+
+
+    public double calculateAverage() {
+        return (marks[0] + marks[1] + marks[2]) / 3.0;
+    }
+
+   
+    public void displayResult() {
+        System.out.println("Roll Number: " + rollNumber);
+        System.out.println("Student Name: " + studentName);
+        System.out.print("Marks: ");
+        for (int mark : marks) {
+            System.out.print(mark + " ");
+        }
+        System.out.println();
+        System.out.println("Average: " + calculateAverage());
+        String result = (calculateAverage() >= 50) ? "Pass" : "Fail";
+        System.out.println("Result: " + result);
+    }
+
+    
+    public int getRollNumber() {
+        return rollNumber;
+    }
+}
+
+
+ class ResultManager {
+    private Student[] students; 
+    private int count; 
+    private Scanner scanner;
+
+    public ResultManager() {
+        students = new Student[100]; 
+        count = 0;
+        scanner = new Scanner(System.in);
+    }
+
+    
+    public void addStudent() {
+        try {
+            System.out.print("Enter Roll Number: ");
+            int roll = scanner.nextInt();
+            scanner.nextLine(); 
+
+            System.out.print("Enter Student Name: ");
+            String name = scanner.nextLine();
+            if (name.trim().isEmpty()) {
+                throw new IllegalArgumentException("Name cannot be empty");
+            }
+
+            
+            for (int i = 0; i < count; i++) {
+                if (students[i].getRollNumber() == roll) {
+                    throw new IllegalArgumentException("Roll number already exists");
+                }
+            }
+
+            int[] marks = new int[3];
+            for (int i = 0; i < 3; i++) {
+                System.out.print("Enter marks for subject " + (i + 1) + ": ");
+                marks[i] = scanner.nextInt();
+            }
+
+            Student s = new Student(roll, name, marks);
+            s.validateMarks(); 
+            students[count++] = s;
+            System.out.println("Student added successfully.");
+        } catch (InputMismatchException e) {
+            System.out.println("Error: Invalid input. Please enter numbers where required.");
+            scanner.nextLine(); 
+        } catch (InvalidMarksException e) {
+            System.out.println("Error: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            System.out.println("Error: " + e.getMessage());
+        } finally {
+            System.out.println("Returning to main menu...");
+        }
+    }
+
+ 
+    public void showStudentDetails() {
+        try {
+            System.out.print("Enter Roll Number to search: ");
+            int roll = scanner.nextInt();
+            boolean found = false;
+            for (int i = 0; i < count; i++) {
+                if (students[i].getRollNumber() == roll) {
+                    students[i].displayResult();
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                System.out.println("Student not found.");
+            }
+            System.out.println("Search completed.");
+        } catch (InputMismatchException e) {
+            System.out.println("Error: Invalid roll number.");
+            scanner.nextLine(); 
+        }
+    }
+
+   
+    public void mainMenu() {
+        while (true) {
+            System.out.println("===== Student Result Management System =====");
+            System.out.println("1. Add Student");
+            System.out.println("2. Show Student Details");
+            System.out.println("3. Exit");
+            System.out.print("Enter your choice: ");
+            try {
+                int choice = scanner.nextInt();
+                switch (choice) {
+                    case 1:
+                        addStudent();
+                        break;
+                    case 2:
+                        showStudentDetails();
+                        break;
+                    case 3:
+                        System.out.println("Exiting program. Thank you!");
+                        scanner.close(); 
+                        return;
+                    default:
+                        System.out.println("Invalid choice.");
+                        System.out.println("Returning to main menu...");
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid choice. Please enter a number.");
+                scanner.nextLine(); // Clear buffer
+                System.out.println("Returning to main menu...");
+            }
+        }
+    }
+
+   
+    public static void main(String[] args) {
+        ResultManager rm = new ResultManager();
+        rm.mainMenu();
+    }
+}
